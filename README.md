@@ -1,2 +1,3 @@
-# kantorphobia
- phasmophobia rip-off
+# generic-horror-game
+
+- hehe we like money
