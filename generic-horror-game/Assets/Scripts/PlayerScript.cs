@@ -7,6 +7,7 @@ public class PlayerScript : MonoBehaviour
     public Light flashlight;
     public AudioSource flashAudio;
     public GameObject ghostObject;
+    public GameObject playerRoom;
     private GhostScript GS;
 
     [Range(0,100)] public float sanity = 100f;
@@ -50,6 +51,14 @@ public class PlayerScript : MonoBehaviour
             {
                 GS.StartHunt();
             }
+        }
+    }
+    void OnTriggerEnter(Collider coll)
+    {
+        if(coll.gameObject.CompareTag("Room"))
+        {
+            playerRoom = coll.gameObject;
+            
         }
     }
 }

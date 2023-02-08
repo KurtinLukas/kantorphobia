@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Rendering.PostProcessing;
 using Cinemachine;
+//using System;
 
 public class GhostScript : MonoBehaviour
 {
@@ -26,7 +27,7 @@ public class GhostScript : MonoBehaviour
     private bool ghostIdle = false;
     public GameObject debugRoom;
 
-    private bool isTargetingPlayer;
+    //private bool isTargetingPlayer;
     public GameObject playerObject;
     
 
@@ -68,7 +69,14 @@ public class GhostScript : MonoBehaviour
                 agent.destination = playerObject.transform.position;
                 idleTimer = generalTimer;
             }
-
+            //Camera effects
+            float playerDistance = GhostToPlayerDistance(triggerDistance);
+            grain.intensity.value = playerDistance;
+            grain.size.value = 2 * playerDistance;
+            chAbb.intensity.value = playerDistance;
+            audioSrc.volume = playerDistance / 2;
+            noise.m_AmplitudeGain  = playerDistance / 2;
+            noise.m_FrequencyGain = playerDistance * 3;
         }
 
         //random roaming
@@ -77,7 +85,7 @@ public class GhostScript : MonoBehaviour
             ghostIdle = true;
         }
 
-        if(generalTimer - idleTimer >= 3f && ghostIdle) //idle in room timer
+        if(generalTimer - idleTimer >= (debugRoom == favRoom ? 6f : 3f) && ghostIdle) //idle in room timer
         {
             Roam();
             idleTimer = 0f;
@@ -97,17 +105,7 @@ public class GhostScript : MonoBehaviour
         else if((int)generalTimer % 3 == 1)
             ghostObject.SetActive(false);
         
-        //Camera effects
-        if(isHunting)
-        {
-            float playerDistance = GhostToPlayerDistance(triggerDistance);
-            grain.intensity.value = playerDistance;
-            grain.size.value = 2 * playerDistance;
-            chAbb.intensity.value = playerDistance;
-            audioSrc.volume = playerDistance / 2;
-            noise.m_AmplitudeGain  = playerDistance / 2;
-            noise.m_FrequencyGain = playerDistance * 3;
-        }
+        
     }
 
     private float GhostToPlayerDistance(float startDistance)
@@ -119,9 +117,9 @@ public class GhostScript : MonoBehaviour
 
     private void Roam()
     {
-        GameObject dest = destArray[Random.Range(0, destArray.Length)];
-        agent.destination = dest.transform.position + new Vector3(Random.Range(1f, 3f), 0f, Random.Range(1f, 3f));
-        debugRoom = dest;
+        int range = Random.Range(0, (int)(destArray.Length * 2.5));
+        agent.destination = (range >= destArray.Length ? favRoom : destArray[range]).transform.position + new Vector3(Random.Range(1f, 3f), 0f, Random.Range(1f, 3f));
+        debugRoom = (range >= destArray.Length ? favRoom : destArray[range]);
     }
 
     public void StartHunt()
@@ -133,7 +131,7 @@ public class GhostScript : MonoBehaviour
     {
         isHunting = false;
         agent.speed = 1.5f;
-        isTargetingPlayer = false;
+        //isTargetingPlayer = false;
     }
 
     void OnTriggerEnter(Collider coll)
