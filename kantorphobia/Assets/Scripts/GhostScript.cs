@@ -18,6 +18,11 @@ public class GhostScript : MonoBehaviour
     public Camera cameraView;
     public GameObject ghostObject;
 
+    public enum GhostType {Spirit, Mare, Phantom, Wraith, Demon, Poltergheist};
+    public GhostType ghostType;
+    //[orbs, writing, fingerprints, freezing, spiritbox, emf]
+    private bool[] currentEvidence = new bool[6];
+
     public PostProcessVolume ppv;
     private Grain grain;
     private ChromaticAberration chAbb;
@@ -25,9 +30,10 @@ public class GhostScript : MonoBehaviour
     public GameObject favRoom;
     public float idleTimer = 0f;
     private bool ghostIdle = false;
-    public GameObject debugRoom;
+    public GameObject targetRoom;
+    public GameObject currentRoom;
 
-    //private bool isTargetingPlayer;
+    private bool isTargetingPlayer;
     public GameObject playerObject;
     
 
@@ -50,6 +56,15 @@ public class GhostScript : MonoBehaviour
         ppv.profile.TryGetSettings(out chAbb);
         noise = virtualCamera.GetCinemachineComponent<CinemachineBasicMultiChannelPerlin>();
 
+        switch(Random.Range(0, 5)){
+            case 0: ghostType = GhostType.Spirit; currentEvidence[1] = true; currentEvidence[4] = true; currentEvidence[5] = true; break;
+            case 1: ghostType = GhostType.Mare; currentEvidence[0] = true; currentEvidence[2] = true; currentEvidence[3] = true; break;
+            case 2: ghostType = GhostType.Phantom; currentEvidence[0] = true; currentEvidence[2] = true; currentEvidence[5] = true; break;
+            case 3: ghostType = GhostType.Wraith; currentEvidence[1] = true; currentEvidence[3] = true; currentEvidence[4] = true; break;
+            case 4: ghostType = GhostType.Demon; currentEvidence[0] = true; currentEvidence[1] = true; currentEvidence[3] = true; break;
+            case 5: ghostType = GhostType.Poltergheist; currentEvidence[1] = true; currentEvidence[2] = true; currentEvidence[5] = true; break;
+            default: ghostType = GhostType.Spirit; currentEvidence[1] = true; currentEvidence[4] = true; currentEvidence[5] = true; break;
+        }
 
         favRoom = destArray[Random.Range(0, destArray.Length)];
         agent.destination = favRoom.transform.position;
@@ -68,15 +83,19 @@ public class GhostScript : MonoBehaviour
                 Debug.Log(hit.collider.gameObject.name);
                 agent.destination = playerObject.transform.position;
                 idleTimer = generalTimer;
+                isTargetingPlayer = true;
             }
+            else isTargetingPlayer = false;
             //Camera effects
-            float playerDistance = GhostToPlayerDistance(triggerDistance);
-            grain.intensity.value = playerDistance;
-            grain.size.value = 2 * playerDistance;
-            chAbb.intensity.value = playerDistance;
-            audioSrc.volume = playerDistance / 2;
-            noise.m_AmplitudeGain  = playerDistance / 2;
-            noise.m_FrequencyGain = playerDistance * 3;
+            if(isTargetingPlayer){
+                float playerDistance = GhostToPlayerDistance(triggerDistance);
+                grain.intensity.value = playerDistance;
+                grain.size.value = 2 * playerDistance;
+                chAbb.intensity.value = playerDistance;
+                audioSrc.volume = playerDistance / 2;
+                noise.m_AmplitudeGain  = playerDistance / 2;
+                noise.m_FrequencyGain = playerDistance * 3;
+            }
         }
 
         //random roaming
@@ -85,11 +104,19 @@ public class GhostScript : MonoBehaviour
             ghostIdle = true;
         }
 
-        if(generalTimer - idleTimer >= (debugRoom == favRoom ? 6f : 3f) && ghostIdle) //idle in room timer
+        if(generalTimer - idleTimer >= (targetRoom == favRoom ? 6f : 3f) && ghostIdle) //idle in room timer
         {
             Roam();
             idleTimer = 0f;
             ghostIdle = false;
+        }
+
+        //actions in favourite room
+        if(favRoom == currentRoom)
+        {
+            if(currentEvidence[0]){
+                //instantiate a ghost orb preset
+            }
         }
 
         //quit after death
@@ -117,9 +144,9 @@ public class GhostScript : MonoBehaviour
 
     private void Roam()
     {
-        int range = Random.Range(0, (int)(destArray.Length * 2.5));
+        int range = Random.Range(0, (int)(destArray.Length * 3.5f));
         agent.destination = (range >= destArray.Length ? favRoom : destArray[range]).transform.position + new Vector3(Random.Range(1f, 3f), 0f, Random.Range(1f, 3f));
-        debugRoom = (range >= destArray.Length ? favRoom : destArray[range]);
+        targetRoom = (range >= destArray.Length ? favRoom : destArray[range]);
     }
 
     public void StartHunt()
@@ -131,7 +158,7 @@ public class GhostScript : MonoBehaviour
     {
         isHunting = false;
         agent.speed = 1.5f;
-        //isTargetingPlayer = false;
+        isTargetingPlayer = false;
     }
 
     void OnTriggerEnter(Collider coll)

@@ -5037,10 +5037,12 @@ MonoBehaviour:
   triggerDistance: 10
   cameraView: {fileID: 963194227}
   ghostObject: {fileID: 912799083}
+  ghostType: 0
   ppv: {fileID: 235405808}
   favRoom: {fileID: 0}
   idleTimer: 0
-  debugRoom: {fileID: 0}
+  targetRoom: {fileID: 0}
+  currentRoom: {fileID: 0}
   playerObject: {fileID: 745463666}
   isHunting: 0
   audioSrc: {fileID: 1208861493}
