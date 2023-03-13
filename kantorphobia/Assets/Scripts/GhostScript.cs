@@ -40,7 +40,7 @@ public class GhostScript : MonoBehaviour
     public GameObject playerObject;
 
     public bool isHunting = false;
-    private bool huntingTimer;
+    private float huntingTimer = 0f;
 
     public AudioSource audioSrc;
     public CinemachineVirtualCamera virtualCamera;
@@ -83,6 +83,10 @@ public class GhostScript : MonoBehaviour
 
         if(isHunting)
         {
+            huntingTimer -= Time.deltaTime;
+            if(huntingTimer <= 0){
+                StopHunt();
+            }
             if(Physics.Raycast(ghostObject.transform.position, playerObject.transform.Find("AgentTarget").transform.position - ghostObject.transform.position, out RaycastHit hit, 30f) && hit.collider.CompareTag("Player"))
             {
                 Debug.Log(hit.collider.gameObject.name);
@@ -163,6 +167,7 @@ public class GhostScript : MonoBehaviour
     {
         isHunting = true;
         agent.speed = 2.8f;
+        huntingTimer = 20f * Random.Range(1, 3);
     }
     public void StopHunt()
     {
