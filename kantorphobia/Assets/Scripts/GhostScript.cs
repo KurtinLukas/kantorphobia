@@ -23,6 +23,9 @@ public class GhostScript : MonoBehaviour
     //[orbs, writing, fingerprints, freezing, spiritbox, emf]
     private bool[] currentEvidence = new bool[6];
 
+    public GameObject[] evidencePrefabs;
+    public float eventTimer = 0;
+
     public PostProcessVolume ppv;
     private Grain grain;
     private ChromaticAberration chAbb;
@@ -35,7 +38,6 @@ public class GhostScript : MonoBehaviour
 
     private bool isTargetingPlayer;
     public GameObject playerObject;
-    
 
     public bool isHunting = false;
     private bool huntingTimer;
@@ -66,8 +68,11 @@ public class GhostScript : MonoBehaviour
             default: ghostType = GhostType.Spirit; currentEvidence[1] = true; currentEvidence[4] = true; currentEvidence[5] = true; break;
         }
 
+
         favRoom = destArray[Random.Range(0, destArray.Length)];
         agent.destination = favRoom.transform.position;
+
+        currentRoom = favRoom;
     }
 
     // Update is called once per frame
@@ -99,7 +104,7 @@ public class GhostScript : MonoBehaviour
         }
 
         //random roaming
-        if(agent.remainingDistance <= 1.5f && !ghostIdle){  //is roaming
+        if(agent.remainingDistance <= 1f && !ghostIdle){  //is roaming
             idleTimer = generalTimer;
             ghostIdle = true;
         }
@@ -114,8 +119,13 @@ public class GhostScript : MonoBehaviour
         //actions in favourite room
         if(favRoom == currentRoom)
         {
+            eventTimer += Time.deltaTime;
             if(currentEvidence[0]){
                 //instantiate a ghost orb preset
+                if(Random.Range(0, 1000) * eventTimer * 0.03f >= 999){
+                    Destroy(Instantiate(evidencePrefabs[0], ghostObject.transform.position, new Quaternion(1f,0f,0f,0f)), 10f);
+                    eventTimer = 0;
+                }
             }
         }
 
@@ -167,6 +177,10 @@ public class GhostScript : MonoBehaviour
             deathVideoPlayer.SetActive(true);
             deathTimer = generalTimer;
             playVideo = true;
+        }
+        else if(coll.gameObject.CompareTag("Room"))
+        {
+            currentRoom = coll.gameObject;
         }
     }
 
