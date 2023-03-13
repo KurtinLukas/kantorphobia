@@ -84,9 +84,7 @@ public class GhostScript : MonoBehaviour
         if(isHunting)
         {
             huntingTimer -= Time.deltaTime;
-            if(huntingTimer <= 0){
-                StopHunt();
-            }
+            
             if(Physics.Raycast(ghostObject.transform.position, playerObject.transform.Find("AgentTarget").transform.position - ghostObject.transform.position, out RaycastHit hit, 30f) && hit.collider.CompareTag("Player"))
             {
                 Debug.Log(hit.collider.gameObject.name);
@@ -96,14 +94,16 @@ public class GhostScript : MonoBehaviour
             }
             else isTargetingPlayer = false;
             //Camera effects
-            if(isTargetingPlayer){
-                float playerDistance = GhostToPlayerDistance(triggerDistance);
-                grain.intensity.value = playerDistance;
-                grain.size.value = 2 * playerDistance;
-                chAbb.intensity.value = playerDistance;
-                audioSrc.volume = playerDistance / 2;
-                noise.m_AmplitudeGain  = playerDistance / 2;
-                noise.m_FrequencyGain = playerDistance * 3;
+            float playerDistance = GhostToPlayerDistance(triggerDistance);
+            grain.intensity.value = playerDistance;
+            grain.size.value = 2 * playerDistance;
+            chAbb.intensity.value = playerDistance;
+            audioSrc.volume = playerDistance / 2;
+            noise.m_AmplitudeGain  = playerDistance / 2;
+            noise.m_FrequencyGain = playerDistance * 3;
+
+            if(huntingTimer <= 0){
+                StopHunt();
             }
         }
 
@@ -113,7 +113,7 @@ public class GhostScript : MonoBehaviour
             ghostIdle = true;
         }
 
-        if(generalTimer - idleTimer >= (targetRoom == favRoom ? 6f : 3f) && ghostIdle) //idle in room timer
+        if(generalTimer - idleTimer >= (isHunting ? (targetRoom == favRoom ? 6f : 3f) : (targetRoom == favRoom ? 4f : 2f)) && ghostIdle) //idle in room timer
         {
             Roam();
             idleTimer = 0f;
@@ -174,11 +174,18 @@ public class GhostScript : MonoBehaviour
         isHunting = false;
         agent.speed = 1.5f;
         isTargetingPlayer = false;
+        float playerDistance = GhostToPlayerDistance(triggerDistance);
+        grain.intensity.value = 0;
+        grain.size.value = 0;
+        chAbb.intensity.value = 0;
+        audioSrc.volume = 0;
+        noise.m_AmplitudeGain  = 0;
+        noise.m_FrequencyGain = 0;
     }
 
     void OnTriggerEnter(Collider coll)
     {
-        if (coll.gameObject.CompareTag("Player") && deathable){
+        if (coll.gameObject.CompareTag("Player") && isHunting && deathable){
             deathVideoPlayer.SetActive(true);
             deathTimer = generalTimer;
             playVideo = true;
