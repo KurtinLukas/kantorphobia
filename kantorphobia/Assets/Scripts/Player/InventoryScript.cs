@@ -23,7 +23,7 @@ public class InventoryScript : MonoBehaviour
         if(Input.GetKeyDown(KeyCode.E)){
             if(Physics.Raycast(cam.transform.position, cam.transform.forward, out RaycastHit hit, 3f, LayerMask.GetMask("Ground","Item"))) //, LayerMask.NameToLayer("Ground")
             {
-                if(hit.collider.gameObject.CompareTag("Item")){
+                if(hit.collider.gameObject.layer == LayerMask.NameToLayer("Item")){
                     if(itemCount < 3){
                         itemInHand = itemCount;
                         itemCount++;

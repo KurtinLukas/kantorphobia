@@ -443,7 +443,7 @@ GameObject:
   - component: {fileID: 6067440622157209627}
   m_Layer: 11
   m_Name: videoCamera
-  m_TagString: Item
+  m_TagString: videoCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
