@@ -17,6 +17,7 @@ public class GhostScript : MonoBehaviour
     public float triggerDistance = 10f;
     public Camera cameraView;
     public GameObject ghostObject;
+    private float distanceToPlayer;
 
     public enum GhostType {Spirit, Mare, Phantom, Wraith, Demon, Poltergheist};
     public GhostType ghostType;
@@ -58,7 +59,7 @@ public class GhostScript : MonoBehaviour
         ppv.profile.TryGetSettings(out chAbb);
         noise = virtualCamera.GetCinemachineComponent<CinemachineBasicMultiChannelPerlin>();
 
-        switch(Random.Range(0, 5)){
+        switch(Random.Range(0, 6)){
             case 0: ghostType = GhostType.Spirit; currentEvidence[1] = true; currentEvidence[4] = true; currentEvidence[5] = true; break;
             case 1: ghostType = GhostType.Mare; currentEvidence[0] = true; currentEvidence[2] = true; currentEvidence[3] = true; break;
             case 2: ghostType = GhostType.Phantom; currentEvidence[0] = true; currentEvidence[2] = true; currentEvidence[5] = true; break;
@@ -81,6 +82,14 @@ public class GhostScript : MonoBehaviour
         generalTimer += Time.deltaTime;
         //if(generalTimer <= 15f) return;   //peaceful timer
 
+        distanceToPlayer = Mathf.Sqrt(Mathf.Pow(ghostObject.transform.position.x, 2) + Mathf.Pow(ghostObject.transform.position.z, 2));
+        distanceToPlayer = Mathf.Sqrt(Mathf.Pow(distanceToPlayer, 2) + Mathf.Pow(ghostObject.transform.position.y, 2));
+
+        if(distanceToPlayer < 5f)
+        {
+            eventTimer += Time.deltaTime;
+        }
+
         if(isHunting)
         {
             huntingTimer -= Time.deltaTime;
@@ -94,13 +103,12 @@ public class GhostScript : MonoBehaviour
             }
             else isTargetingPlayer = false;
             //Camera effects
-            float playerDistance = GhostToPlayerDistance(triggerDistance);
-            grain.intensity.value = playerDistance;
-            grain.size.value = 2 * playerDistance;
-            chAbb.intensity.value = playerDistance;
-            audioSrc.volume = playerDistance / 2;
-            noise.m_AmplitudeGain  = playerDistance / 2;
-            noise.m_FrequencyGain = playerDistance * 3;
+            grain.intensity.value = distanceToPlayer;
+            grain.size.value = 2 * distanceToPlayer;
+            chAbb.intensity.value = distanceToPlayer;
+            audioSrc.volume = distanceToPlayer / 2;
+            noise.m_AmplitudeGain  = distanceToPlayer / 2;
+            noise.m_FrequencyGain = distanceToPlayer * 3;
 
             if(huntingTimer <= 0){
                 StopHunt();
@@ -123,10 +131,9 @@ public class GhostScript : MonoBehaviour
         //actions in favourite room
         if(favRoom == currentRoom)
         {
-            eventTimer += Time.deltaTime;
             if(currentEvidence[0]){
                 //instantiate a ghost orb preset
-                if(Random.Range(0, 1000) * eventTimer * 0.03f >= 999){
+                if(Random.Range(0, 1010) >= 999){
                     Destroy(Instantiate(evidencePrefabs[0], ghostObject.transform.position, new Quaternion(1f,0f,0f,0f)), 10f);
                     eventTimer = 0;
                 }
@@ -149,13 +156,6 @@ public class GhostScript : MonoBehaviour
         
     }
 
-    private float GhostToPlayerDistance(float startDistance)
-    {
-        float distance = agent.remainingDistance;
-        if(distance > startDistance || distance <= 0f) return 0;
-        return 1 - (distance / startDistance);
-    }
-
     private void Roam()
     {
         int range = Random.Range(0, (int)(destArray.Length * 3.5f));
@@ -174,7 +174,6 @@ public class GhostScript : MonoBehaviour
         isHunting = false;
         agent.speed = 1.5f;
         isTargetingPlayer = false;
-        float playerDistance = GhostToPlayerDistance(triggerDistance);
         grain.intensity.value = 0;
         grain.size.value = 0;
         chAbb.intensity.value = 0;
